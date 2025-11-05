@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight's Tour - Haunted Chess 5x5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'MedievalSharp', cursive;
+            background: linear-gradient(135deg, #0A0A0A 0%, #1a0a2e 50%, #0A0A0A 100%);
+            color: #FF7518;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 117, 24, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(60, 19, 97, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 95%;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .header h1 {
+            font-family: 'Creepster', cursive;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            color: #FF7518;
+            -webkit-text-stroke: 3px #000000;
+            text-stroke: 3px #000000;
+            paint-order: stroke fill;
+            text-shadow: 
+                0 0 20px #9B59B6,
+                0 0 40px #9B59B6,
+                0 0 60px #9B59B6,
+                0 0 80px #3C1361,
+                0 0 100px #3C1361;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            color: #9B59B6;
+            text-shadow: 0 0 10px #9B59B6;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 
+                    0 0 20px #9B59B6,
+                    0 0 40px #9B59B6,
+                    0 0 60px #9B59B6,
+                    0 0 80px #3C1361,
+                    0 0 100px #3C1361;
+            }
+            to {
+                text-shadow: 
+                    0 0 30px #9B59B6,
+                    0 0 50px #9B59B6,
+                    0 0 70px #9B59B6,
+                    0 0 90px #3C1361,
+                    0 0 110px #3C1361,
+                    0 0 130px #3C1361;
+            }
+        }
+
+        .game-board {
+            background: rgba(10, 10, 10, 0.8);
+            border: 3px solid #FF7518;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 
+                0 0 20px rgba(255, 117, 24, 0.5),
+                0 0 40px rgba(60, 19, 97, 0.3),
+                inset 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .board-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 20px;
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px;
+            background: #1a0a2e;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 20px rgba(60, 19, 97, 0.5);
+            position: relative;
+        }
+
+        .square {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            color: #000000;
+        }
+>>>>>>>
+
+        .square::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%),
+                linear-gradient(-45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%);
+            background-size: 20px 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .square:hover::before {
+            opacity: 1;
+        }
+
+        .square.light {
+            background: linear-gradient(135deg, #FF7518 0%, #ff9347 100%);
+            box-shadow: 0 0 10px rgba(255, 117, 24, 0.3);
+        }
+
+        .square.dark {
+            background: linear-gradient(135deg, #3C1361 0%, #5a1a8f 100%);
+            box-shadow: 0 0 10px rgba(60, 19, 97, 0.3);
+        }
+
+        .square.visited {
+            background: linear-gradient(135deg, #0c8599 0%, #0fa3ba 100%);
+            box-shadow: 0 0 15px rgba(15, 163, 186, 0.6);
+            animation: pulse 0.5s ease;
+        }
+
+        .square.current {
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 20px #00ffff;
+            animation: currentGlow 0.5s ease infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes currentGlow {
+            from { box-shadow: 0 0 20px #00ffff; }
+            to { box-shadow: 0 0 30px #00ffff, 0 0 40px #0fa3ba; }
+        }
+
+        .knight-icon {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            filter: drop-shadow(0 0 10px #00ffff);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            font-family: 'MedievalSharp', cursive;
+            padding: 12px 24px;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            border: 2px solid #FF7518;
+            background: linear-gradient(135deg, #1a0a2e 0%, #3C1361 100%);
+            color: #FF7518;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(255, 117, 24, 0.3);
+            flex: 1;
+            min-width: 150px;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 117, 24, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(26, 10, 46, 0.6);
+            border: 2px solid #3C1361;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(60, 19, 97, 0.3);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            color: #9B59B6;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #3C1361 0%, #FF7518 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FF7518;
+            cursor: pointer;
+            box-shadow: 0 0 10px #FF7518;
+            transition: all 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px #FF7518;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #FF7518;
+            cursor: pointer;
+            box-shadow: 0 0 10px #FF7518;
+            border: none;
+        }
+
+        .status-panel {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(10, 10, 10, 0.6);
+            border: 2px solid #3C1361;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(60, 19, 97, 0.3);
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 10px;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .status-label {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            color: #9B59B6;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            font-weight: bold;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .status-ready { color: #2ecc71; }
+        .status-running { color: #9B59B6; }
+        .status-complete { color: #FF7518; }
+
+        .svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .knight-path {
+            stroke: #00ffff;
+            stroke-width: 3;
+            fill: none;
+            filter: drop-shadow(0 0 5px #00ffff);
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawPath 2s ease forwards;
+        }
+
+        @keyframes drawPath {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+                padding: 10px 0;
+            }
+
+            .container {
+                padding: 10px;
+                width: 100%;
+            }
+
+            .header h1 {
+                font-size: clamp(1.5rem, 8vw, 2.5rem);
+                -webkit-text-stroke: 2px #000000;
+            }
+
+            .subtitle {
+                font-size: clamp(0.8rem, 3vw, 1rem);
+            }
+
+            .game-board {
+                padding: 15px 10px;
+            }
+
+            .board-container {
+                max-width: 100%;
+            }
+
+            .chessboard {
+                padding: 5px;
+                gap: 2px;
+            }
+
+            .square {
+                font-size: clamp(0.8rem, 4vw, 1.2rem);
+            }
+
+            .knight-icon {
+                font-size: clamp(1.2rem, 5vw, 2rem);
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: 100%;
+                padding: 15px 20px;
+                font-size: clamp(1rem, 3vw, 1.2rem);
+            }
+
+            .status-panel {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px;
+            }
+
+            .status-item {
+                min-width: 100%;
+                padding: 8px;
+            }
+
+            .status-label {
+                font-size: clamp(0.75rem, 2.5vw, 0.85rem);
+            }
+
+            .status-value {
+                font-size: clamp(1rem, 4vw, 1.3rem);
+            }
+
+            .footer {
+                padding: 15px 10px;
+                margin-top: 15px;
+            }
+
+            .footer-text {
+                font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+                margin: 6px 0;
+            }
+
+            .bat {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: clamp(1.3rem, 7vw, 2rem);
+                -webkit-text-stroke: 1.5px #000000;
+                letter-spacing: 1px;
+            }
+
+            .game-board {
+                padding: 10px 5px;
+                border-width: 2px;
+            }
+
+            .square {
+                font-size: clamp(0.7rem, 3.5vw, 1rem);
+                border-width: 1px;
+            }
+
+            .knight-icon {
+                font-size: clamp(1rem, 4.5vw, 1.5rem);
+            }
+
+            button {
+                padding: 12px 16px;
+                font-size: clamp(0.9rem, 3vw, 1.1rem);
+            }
+
+            .status-panel {
+                padding: 8px;
+            }
+
+            .footer-text {
+                font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            body {
+                padding: 5px 0;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .header h1 {
+                font-size: clamp(1.5rem, 5vh, 2rem);
+            }
+
+            .game-board {
+                padding: 10px;
+            }
+
+            .board-container {
+                max-width: 350px;
+            }
+
+            .footer {
+                margin-top: 10px;
+                padding: 10px;
+            }
+        }
+
+        .bat {
+            position: fixed;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 5;
+            animation: fly 15s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes fly {
+            0% {
+                transform: translateX(-100px) translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateX(50vw) translateY(-30px) rotate(10deg);
+            }
+            100% {
+                transform: translateX(100vw) translateY(0) rotate(0deg);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            background: rgba(10, 10, 10, 0.6);
+            border: 2px solid #3C1361;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(60, 19, 97, 0.3);
+        }
+
+        .footer-text {
+            color: #9B59B6;
+            font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+            margin: 8px 0;
+            text-shadow: 0 0 5px rgba(155, 89, 182, 0.5);
+        }
+
+        .footer-text a {
+            color: #FF7518;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 10px rgba(255, 117, 24, 0.5);
+        }
+
+        .footer-text a:hover {
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+            text-decoration: underline;
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="bat" style="top: 10%; animation-delay: 0s;">🦇</div>
+    <div class="bat" style="top: 30%; animation-delay: 5s;">🦇</div>
+    <div class="bat" style="top: 60%; animation-delay: 10s;">🦇</div>
+
+    <div class="container">
+        <div class="header">
+            <h1>👻 Knight's Tour 🎃</h1>
+            <p class="subtitle">~ Haunted Chess 5x5 ~</p>
+        </div>
+
+        <div class="game-board">
+            <div class="board-container">
+                <div class="chessboard" id="chessboard"></div>
+                <svg class="svg-overlay" id="path-svg"></svg>
+            </div>
+
+            <div class="controls">
+                <div class="button-group">
+                    <button id="summonBtn">
+                        <span>🔮 Summon Solution</span>
+                    </button>
+                    <button id="resetBtn">
+                        <span>🌙 Reset Spell</span>
+                    </button>
+                    <button id="downloadBtn" style="display: none;">
+                        <span>📜 Download Pattern (PNG)</span>
+                    </button>
+                </div>
+
+                
+            </div>
+
+            <div class="status-panel">
+                <div class="status-item">
+                    <div class="status-label">Status</div>
+                    <div class="status-value status-ready" id="statusText">🟢 Ready</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Progress</div>
+                    <div class="status-value" id="progressText">0 / 25</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                Created by <a href="https://x.com/0xdhyzal" target="_blank" rel="noopener noreferrer">0xPamanSam | Evm</a>
+            </p>
+            <p class="footer-text">
+                Powered by <a href="https://x.com/SoundnessLabs" target="_blank" rel="noopener noreferrer">Soundness</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ==================== PARTICLE SYSTEM ====================
+        class ParticleSystem {
+            constructor() {
+                this.canvas = document.getElementById('particles-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.init();
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        size: Math.random() * 2 + 1,
+                        color: Math.random() > 0.5 ? 'rgba(255, 117, 24, 0.5)' : 'rgba(155, 89, 182, 0.5)'
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.canvas.height) p.vy *= -1;
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // ==================== AUDIO SYSTEM ====================
+        class AudioSystem {
+            constructor() {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            playTone(frequency, duration, type = 'sine') {
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type;
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+
+            playMoveSound() {
+                this.playTone(440, 0.1, 'square');
+            }
+
+            playCompleteSound() {
+                this.playTone(880, 0.3, 'sine');
+                setTimeout(() => this.playTone(1046.5, 0.5, 'sine'), 150);
+            }
+
+            playResetSound() {
+                this.playTone(330, 0.2, 'sawtooth');
+            }
+        }
+
+        // ==================== KNIGHT'S TOUR GAME ====================
+        class KnightsTour {
+            constructor() {
+                this.boardSize = 5;
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(-1));
+                this.path = [];
+                this.animationSpeed = 800; // Slow
+                this.isRunning = false;
+                this.currentStep = 0;
+                
+                this.chessboard = document.getElementById('chessboard');
+                this.summonBtn = document.getElementById('summonBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.statusText = document.getElementById('statusText');
+                this.progressText = document.getElementById('progressText');
+                this.pathSvg = document.getElementById('path-svg');
+                
+                this.audio = new AudioSystem();
+                this.particles = new ParticleSystem();
+                
+                this.knightMoves = [
+                    [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+                    [1, -2], [1, 2], [2, -1], [2, 1]
+                ];
+                
+                this.initBoard();
+                this.setupEventListeners();
+                this.updateStatus('ready');
+            }
+
+            initBoard() {
+                this.chessboard.innerHTML = '';
+                for (let row = 0; row < this.boardSize; row++) {
+                    for (let col = 0; col < this.boardSize; col++) {
+                        const square = document.createElement('div');
+                        square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                        square.dataset.row = row;
+                        square.dataset.col = col;
+                        this.chessboard.appendChild(square);
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                this.summonBtn.addEventListener('click', () => this.startTour());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.downloadBtn.addEventListener('click', () => this.downloadPattern());
+            }
+
+            isValid(x, y) {
+                return x >= 0 && x < this.boardSize && y >= 0 && y < this.boardSize && this.board[x][y] === -1;
+            }
+
+            countOnwardMoves(x, y) {
+                let count = 0;
+                for (let move of this.knightMoves) {
+                    const nx = x + move[0];
+                    const ny = y + move[1];
+                    if (this.isValid(nx, ny)) count++;
+                }
+                return count;
+            }
+
+            solveKnightsTour(x, y, moveCount) {
+                this.board[x][y] = moveCount;
+                this.path.push([x, y]);
+
+                if (moveCount === this.boardSize * this.boardSize - 1) {
+                    return true;
+                }
+
+                // Warnsdorff's heuristic with randomization for variety
+                let nextMoves = [];
+                for (let move of this.knightMoves) {
+                    const nx = x + move[0];
+                    const ny = y + move[1];
+                    if (this.isValid(nx, ny)) {
+                        const priority = this.countOnwardMoves(nx, ny);
+                        // Add small random factor to create different patterns
+                        const randomFactor = Math.random() * 0.5;
+                        nextMoves.push({ x: nx, y: ny, priority: priority + randomFactor });
+                    }
+                }
+
+                // Sort by priority (with randomization)
+                nextMoves.sort((a, b) => a.priority - b.priority);
+
+                for (let next of nextMoves) {
+                    if (this.solveKnightsTour(next.x, next.y, moveCount + 1)) {
+                        return true;
+                    }
+                }
+
+                this.board[x][y] = -1;
+                this.path.pop();
+                return false;
+            }
+
+            async startTour() {
+                if (this.isRunning) return;
+                
+                this.isRunning = true;
+                this.summonBtn.disabled = true;
+                this.updateStatus('running');
+                this.audio.playMoveSound();
+
+                // Reset and solve with random starting position
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(-1));
+                this.path = [];
+                
+                // Try different random starting positions until solution found
+                let solved = false;
+                let attempts = 0;
+                const maxAttempts = 50;
+                
+                while (!solved && attempts < maxAttempts) {
+                    // Reset for new attempt
+                    this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(-1));
+                    this.path = [];
+                    
+                    // Random starting position
+                    const startX = Math.floor(Math.random() * this.boardSize);
+                    const startY = Math.floor(Math.random() * this.boardSize);
+                    
+                    solved = this.solveKnightsTour(startX, startY, 0);
+                    attempts++;
+                }
+                
+                if (solved) {
+                    await this.animatePath();
+                } else {
+                    this.updateStatus('ready');
+                    this.statusText.textContent = '❌ No Solution';
+                    this.isRunning = false;
+                    this.summonBtn.disabled = false;
+                }
+            }
+
+            async animatePath() {
+                const squares = this.chessboard.querySelectorAll('.square');
+                
+                for (let i = 0; i < this.path.length; i++) {
+                    const [x, y] = this.path[i];
+                    const index = x * this.boardSize + y;
+                    const square = squares[index];
+                    
+                    // Remove previous current
+                    squares.forEach(s => s.classList.remove('current'));
+                    
+                    square.classList.add('visited', 'current');
+                    square.innerHTML = `<div class="knight-icon">♞</div>${i + 1}`;
+                    
+                    this.currentStep = i + 1;
+                    this.updateProgress();
+                    this.audio.playMoveSound();
+                    
+                    // Draw path line
+                    if (i > 0) {
+                        this.drawPathLine(this.path[i - 1], this.path[i]);
+                    }
+                    
+                    await this.sleep(this.animationSpeed);
+                }
+                
+                this.updateStatus('complete');
+                this.audio.playCompleteSound();
+                this.isRunning = false;
+                this.summonBtn.disabled = false;
+                this.downloadBtn.style.display = 'block';
+            }
+
+            drawPathLine(from, to) {
+                const squares = this.chessboard.querySelectorAll('.square');
+                const boardRect = this.chessboard.getBoundingClientRect();
+                
+                const fromIndex = from[0] * this.boardSize + from[1];
+                const toIndex = to[0] * this.boardSize + to[1];
+                
+                const fromSquare = squares[fromIndex].getBoundingClientRect();
+                const toSquare = squares[toIndex].getBoundingClientRect();
+                
+                const fromX = fromSquare.left + fromSquare.width / 2 - boardRect.left;
+                const fromY = fromSquare.top + fromSquare.height / 2 - boardRect.top;
+                const toX = toSquare.left + toSquare.width / 2 - boardRect.left;
+                const toY = toSquare.top + toSquare.height / 2 - boardRect.top;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', fromX);
+                line.setAttribute('y1', fromY);
+                line.setAttribute('x2', toX);
+                line.setAttribute('y2', toY);
+                line.setAttribute('class', 'knight-path');
+                
+                this.pathSvg.appendChild(line);
+            }
+
+            updateStatus(status) {
+                this.statusText.className = 'status-value';
+                switch(status) {
+                    case 'ready':
+                        this.statusText.classList.add('status-ready');
+                        this.statusText.textContent = '🟢 Ready';
+                        break;
+                    case 'running':
+                        this.statusText.classList.add('status-running');
+                        this.statusText.textContent = '🟣 Exploring...';
+                        break;
+                    case 'complete':
+                        this.statusText.classList.add('status-complete');
+                        this.statusText.textContent = '🧡 Complete!';
+                        break;
+                }
+            }
+
+            updateProgress() {
+                this.progressText.textContent = `${this.currentStep} / 25`;
+            }
+
+            reset() {
+                if (this.isRunning) return;
+                
+                this.board = Array(this.boardSize).fill().map(() => Array(this.boardSize).fill(-1));
+                this.path = [];
+                this.currentStep = 0;
+                this.pathSvg.innerHTML = '';
+                this.downloadBtn.style.display = 'none';
+                this.initBoard();
+                this.updateStatus('ready');
+                this.updateProgress();
+                this.audio.playResetSound();
+            }
+
+            downloadPattern() {
+                // Create offscreen canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Enable smooth rendering
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Detect device type and set appropriate canvas size
+                const isMobile = window.innerWidth <= 768;
+                const canvasWidth = isMobile ? 600 : 800;
+                const canvasHeight = isMobile ? 700 : 900;
+                
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                
+                // Background with vignette effect
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, canvas.width / 1.5
+                );
+                gradient.addColorStop(0, '#1a0a2e');
+                gradient.addColorStop(0.7, '#0d051a');
+                gradient.addColorStop(1, '#0A0A0A');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Title at the top with glow (responsive)
+                const titleSize = isMobile ? 28 : 42;
+                ctx.font = `${titleSize}px Creepster, cursive`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.shadowColor = '#FF7518';
+                ctx.shadowBlur = isMobile ? 10 : 15;
+                ctx.fillStyle = '#FF7518';
+                ctx.fillText("Knight's Tour – Haunted 5x5", canvas.width / 2, isMobile ? 20 : 30);
+                ctx.shadowBlur = 0;
+                
+                // Board setup with responsive dimensions
+                const padding = isMobile ? 30 : 50;
+                const boardSize = isMobile ? 480 : 600; // Divisible by 5 for perfect squares
+                const squareSize = boardSize / 5;
+                const startX = (canvas.width - boardSize) / 2;
+                const startY = isMobile ? 80 : 120;
+                
+                // Draw board shadow for depth
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 30;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 10;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(startX - 10, startY - 10, boardSize + 20, boardSize + 20);
+                ctx.shadowBlur = 0;
+                
+                // Draw squares with precise positioning
+                for (let row = 0; row < 5; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        const x = Math.floor(startX + col * squareSize);
+                        const y = Math.floor(startY + row * squareSize);
+                        
+                        // Square gradient with glow
+                        if ((row + col) % 2 === 0) {
+                            const squareGradient = ctx.createRadialGradient(
+                                x + squareSize / 2, y + squareSize / 2, 0,
+                                x + squareSize / 2, y + squareSize / 2, squareSize
+                            );
+                            squareGradient.addColorStop(0, '#ff9347');
+                            squareGradient.addColorStop(1, '#FF7518');
+                            ctx.fillStyle = squareGradient;
+                        } else {
+                            const squareGradient = ctx.createRadialGradient(
+                                x + squareSize / 2, y + squareSize / 2, 0,
+                                x + squareSize / 2, y + squareSize / 2, squareSize
+                            );
+                            squareGradient.addColorStop(0, '#5a1a8f');
+                            squareGradient.addColorStop(1, '#3C1361');
+                            ctx.fillStyle = squareGradient;
+                        }
+                        
+                        ctx.fillRect(x, y, squareSize, squareSize);
+                    }
+                }
+                
+                // Draw precise grid lines
+                ctx.lineWidth = 2;
+                
+                // Internal grid lines (purple tint)
+                ctx.strokeStyle = 'rgba(100, 60, 150, 0.6)';
+                ctx.beginPath();
+                
+                // Vertical lines
+                for (let i = 1; i < 5; i++) {
+                    const x = Math.floor(startX + i * squareSize) + 0.5;
+                    ctx.moveTo(x, startY);
+                    ctx.lineTo(x, startY + boardSize);
+                }
+                
+                // Horizontal lines
+                for (let i = 1; i < 5; i++) {
+                    const y = Math.floor(startY + i * squareSize) + 0.5;
+                    ctx.moveTo(startX, y);
+                    ctx.lineTo(startX + boardSize, y);
+                }
+                
+                ctx.stroke();
+                
+                // Outer border (glowing orange)
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = 'rgba(255, 117, 24, 0.8)';
+                ctx.shadowColor = '#FF7518';
+                ctx.shadowBlur = 10;
+                ctx.strokeRect(
+                    Math.floor(startX) + 0.5, 
+                    Math.floor(startY) + 0.5, 
+                    boardSize - 1, 
+                    boardSize - 1
+                );
+                ctx.shadowBlur = 0;
+                
+                // Draw step numbers - clean and centered (responsive)
+                const numberSize = isMobile ? 40 : 52;
+                ctx.font = `${numberSize}px Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'transparent';
+                ctx.filter = 'none';
+                
+                for (let i = 0; i < this.path.length; i++) {
+                    const [row, col] = this.path[i];
+                    const x = Math.floor(startX + col * squareSize + squareSize / 2);
+                    const y = Math.floor(startY + row * squareSize + squareSize / 2);
+                    
+                    // Simple black numbers with no effects
+                    ctx.fillStyle = '#000000';
+                    ctx.fillText(i + 1, x, y);
+                }
+                
+                // Footer credits - centered at bottom (responsive)
+                const footerY = startY + boardSize + (isMobile ? 40 : 60);
+                const footerSize = isMobile ? 12 : 16;
+                const footerSpacing = isMobile ? 18 : 25;
+                ctx.font = `${footerSize}px Arial, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                
+                ctx.fillText('created by 0xPamanSam | EVM', canvas.width / 2, footerY);
+                ctx.fillText('powered by soundness', canvas.width / 2, footerY + footerSpacing);
+                
+                // Generate filename
+                const filename = 'knight-tour-pattern.png';
+                
+                // Download using toDataURL
+                const dataURL = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // ==================== INITIALIZE GAME ====================
+        window.addEventListener('DOMContentLoaded', () => {
+            try {
+                const game = new KnightsTour();
+                console.log('Knight\'s Tour initialized successfully');
+            } catch (error) {
+                console.error('Game initialization failed:', error);
+                document.body.innerHTML = '<h1 style="color: #FF7518; text-align: center; margin-top: 50px;">Game failed to load. Please refresh the page.</h1>';
+            }
+        });
+    </script>
+</body>
+</html>
